@@ -47,6 +47,8 @@ func (n NymError) String() string {
  * NymSelfAddressRequest
  *********************************************/
 
+const NymSelfAddressType = "selfAddress"
+
 func NewSelfAddressRequest() NymMessage {
 	return NymSelfAddressRequest{
 		NymMessageCommon{
@@ -55,13 +57,11 @@ func NewSelfAddressRequest() NymMessage {
 	}
 }
 
-const NymSelfAddressType = "selfAddress"
-
 type NymSelfAddressRequest struct {
 	NymMessageCommon
 }
 
-func (s NymSelfAddressRequest) NewEmpty() NymMessage {
+func (NymSelfAddressRequest) NewEmpty() NymMessage {
 	return NewSelfAddressRequest()
 }
 
@@ -78,6 +78,15 @@ func (NymSelfAddressRequest) String() string {
  *********************************************/
 
 const NymSelfAddressReplyType = "selfAddress"
+
+func NewSelfAddressReply(address string) NymMessage {
+	return NymSelfAddressReply{
+		NymMessageCommon{
+			Type: NymSelfAddressReplyType,
+		},
+		address,
+	}
+}
 
 type NymSelfAddressReply struct {
 	NymMessageCommon
@@ -104,10 +113,100 @@ func (n NymSelfAddressReply) String() string {
 }
 
 /*********************************************
- * NymMessage
+ * NymSend
+ *********************************************/
+
+const NymSendType = "send"
+
+func NewNymSend(message string, recipient string) NymMessage {
+	return NymSend{
+		NymMessageCommon{
+			Type: NymSendType,
+		},
+		message, recipient,
+	}
+}
+
+type NymSend struct {
+	NymMessageCommon
+
+	Message   string `json:"message"`
+	Recipient string `json:"recipient"`
+}
+
+func (NymSend) NewEmpty() NymMessage {
+	return NymSend{
+		NymMessageCommon{
+			Type: NymSendType,
+		},
+		"", "",
+	}
+}
+
+func (NymSend) Name() string {
+	return "NymSend"
+}
+
+func (n NymSend) String() string {
+	s := fmt.Sprintf("NymSend to %s: %s", n.Recipient, n.Message)
+	return s
+}
+
+/*********************************************
+ * NymSendAnonymous
+ *********************************************/
+
+const NymSendAnonymousType = "sendAnonymous"
+
+func NewNymSendAnonymous(message string, recipient string, nbReplySurbs uint) NymMessage {
+	return NymSendAnonymous{
+		NymMessageCommon{
+			Type: NymSendType,
+		},
+		message, recipient, nbReplySurbs,
+	}
+}
+
+type NymSendAnonymous struct {
+	NymMessageCommon
+
+	Message    string `json:"message"`
+	Recipient  string `json:"recipient"`
+	ReplySurbs uint   `json:"replySurbs"`
+}
+
+func (NymSendAnonymous) NewEmpty() NymMessage {
+	return NymSendAnonymous{
+		NymMessageCommon{
+			Type: NymSendAnonymousType,
+		},
+		"", "", 0,
+	}
+}
+
+func (NymSendAnonymous) Name() string {
+	return "NymSendAnonymous"
+}
+
+func (n NymSendAnonymous) String() string {
+	s := fmt.Sprintf("NymSendAnonymous to %s: %s with %d replySurbs", n.Recipient, n.Message, n.ReplySurbs)
+	return s
+}
+
+/*********************************************
+ * NymReceived
  *********************************************/
 
 const NymReceivedType = "received"
+
+func NewNymReceived(message string, senderTag string) NymMessage {
+	return NymReceived{
+		NymMessageCommon{
+			Type: NymReceivedType,
+		},
+		message, senderTag,
+	}
+}
 
 type NymReceived struct {
 	NymMessageCommon
@@ -116,13 +215,12 @@ type NymReceived struct {
 	SenderTag string `json:"senderTag"`
 }
 
-func (n NymReceived) NewEmpty() NymMessage {
+func (NymReceived) NewEmpty() NymMessage {
 	return NymReceived{
 		NymMessageCommon{
 			Type: NymReceivedType,
 		},
-		"",
-		"",
+		"", "",
 	}
 }
 
@@ -162,8 +260,7 @@ func (n NymReply) NewEmpty() NymMessage {
 		NymMessageCommon{
 			Type: NymReplyType,
 		},
-		"",
-		"",
+		"", "",
 	}
 }
 
@@ -172,6 +269,6 @@ func (NymReply) Name() string {
 }
 
 func (n NymReply) String() string {
-	s := fmt.Sprintf("NymReply for %v: \"%v\"", n.SenderTag, n.Message)
+	s := fmt.Sprintf("NymReply for %s: \"%s\"", n.SenderTag, n.Message)
 	return s
 }

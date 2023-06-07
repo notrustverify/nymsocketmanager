@@ -2,6 +2,7 @@ package nymsocketmanager
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 	"time"
 
@@ -57,7 +58,7 @@ type NymSocketManager struct {
 	// Related to sender
 	senderMutex sync.Mutex
 
-	selfAddressReceivedChan chan interface{}
+	selfAddressReceivedChan chan struct{}
 
 	logger *zerolog.Logger
 }
@@ -103,7 +104,7 @@ func (n *NymSocketManager) Start() (chan struct{}, error) {
 	// To ensure everything works as expected, collect clientID
 
 	// Create chan for messageDispatcher to indicate when response received
-	n.selfAddressReceivedChan = make(chan interface{})
+	n.selfAddressReceivedChan = make(chan struct{})
 
 	e = n.Send(NewSelfAddressRequest())
 	if nil != e {
@@ -267,6 +268,15 @@ func (n *NymSocketManager) GetNymClientId() string {
 	n.Lock()
 	defer n.Unlock()
 	return n.clientID
+}
+
+func (n *NymSocketManager) GetConnectedGateway() string {
+	n.Lock()
+	defer n.Unlock()
+	if len(n.clientID) == 0 {
+		return ""
+	}
+	return strings.Split(n.clientID, "@")[1]
 }
 
 // messageDispatcher is provided to the socketListener to process the incoming messages.
